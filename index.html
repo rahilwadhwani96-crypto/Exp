@@ -464,8 +464,15 @@
 </div>
 
 <script>
+// ==================== IMPORTANT: UPDATE THESE TWO URLs ====================
+// 1. CSV_URL - for READING data from Google Sheet (already correct)
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAvkI60IX3X4EutydUQf_vM/export?format=csv";
-const APPS_SCRIPT_URL = "https://script.google.com/macros/d/AKfycbxENbBPCVZJ3HhC5OhJ6n0A_VFH-Y0nGfKcxR5Eoe4VVr0V6gC1/usercript"; // Update this with your Apps Script URL
+
+// 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
+// Replace this with your deployment URL from Google Apps Script
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1htLb4GGod62h_J2hrrcYHLsDykwQKCnzMT_jWpESEQoWYNUd_OI9epLbMbQ9dmIG/exec";
+// =========================================================================
+
 let allExpenses = [];
 let paidItems = JSON.parse(localStorage.getItem('paidItems') || '[]');
 
@@ -597,6 +604,11 @@ function makeCard(e, type) {
 }
 
 async function markPaid(code) {
+  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
+    showSuccess("⚠️ Please add Apps Script URL first!");
+    return;
+  }
+  
   try {
     showSuccess("⏳ Saving to sheet...");
     const response = await fetch(APPS_SCRIPT_URL, {
@@ -606,7 +618,7 @@ async function markPaid(code) {
     showSuccess("✓ Marked as paid!");
     setTimeout(loadData, 500);
   } catch (e) {
-    showSuccess("✓ Saved locally (offline)");
+    showSuccess("❌ Error: Check Apps Script URL");
   }
 }
 
@@ -614,6 +626,11 @@ async function addExtra() {
   const amt = document.getElementById("amount").value;
   const cmt = document.getElementById("comment").value;
   if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
+  
+  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
+    showSuccess("⚠️ Please add Apps Script URL first!");
+    return;
+  }
   
   try {
     showSuccess("⏳ Adding to sheet...");
@@ -628,7 +645,7 @@ async function addExtra() {
     showSuccess("✓ Expense added to sheet!");
     setTimeout(loadData, 500);
   } catch (e) {
-    showSuccess("⚠️ Check your Apps Script URL");
+    showSuccess("❌ Error: Check Apps Script URL");
   }
 }
 
