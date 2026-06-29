@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Manager</title>
+  <style>
+    :root { --bg: #0a0e27; --card: #151d36; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; --border: #2d3748; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: linear-gradient(135deg, var(--bg) 0%, #1a1f3a 100%); color: var(--text); font-family: -apple-system, sans-serif; padding: 16px; }
+    .container { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 28px; }
+    .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: var(--muted); }
+    .card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
+    .label { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+    .amount { font-size: 32px; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
+    .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #6366f1); transition: width 0.3s; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .stats { display: flex; justify-content: space-around; padding-top: 12px; border-top: 1px solid var(--border); }
+    .stat { text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; margin-top: 20px; }
+    .group-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; margin-top: 16px; }
+    .expense-card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 10px; border: 1px solid var(--border); text-align: center; }
+    .expense-icon { font-size: 32px; margin-bottom: 8px; }
+    .expense-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .expense-amount { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+    .expense-date { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 12px; width: 100%; }
+    .badge-overdue { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+    .badge-today { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .badge-tomorrow { background: rgba(245, 158, 11, 0.12); color: #fdba74; }
+    .badge-upcoming { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .button { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: all 0.3s; text-transform: uppercase; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #6366f1); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: #000; }
+    .button:hover { transform: translateY(-2px); }
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    input { width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; margin-bottom: 10px; }
+    input::placeholder { color: var(--muted); }
+    .loading { text-align: center; padding: 20px; color: var(--muted); }
+    .history-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; }
+    .history-info { text-align: left; flex: 1; }
+    .history-date { font-size: 11px; color: var(--muted); }
+    .history-comment { font-size: 13px; font-weight: 600; }
+    .history-amount { font-size: 16px; font-weight: 700; color: var(--primary); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title">💰 Expense Manager</div>
+    <div class="subtitle">Track your finances effortlessly</div>
+  </div>
+
+  <div class="card">
+    <div class="label">💸 Remaining this month</div>
+    <div class="amount" id="remaining">₹0</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+    <div class="progress-labels">
+      <span id="paidLabel">₹0 paid</span>
+      <span id="totalLabel">₹0 total</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="pendingCount">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="overdueCount">0</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">📋 Expenses</div>
+  <div id="expenses" class="loading">Loading expenses...</div>
+
+  <div style="margin-top: 20px; margin-bottom: 20px;">
+    <button class="button btn-primary" id="refreshBtn">🔄 Refresh</button>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = "1J6MZXem7uMEQRigxR-gKSAvkI60IX3X4EutydUQf_vM";
+const SHEET_NAME = "Sheet1";
+
+async function loadData() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/query?tq=SELECT * WHERE A IS NOT NULL&tqx=out:json&sheet=${SHEET_NAME}`;
+    const response = await fetch(url);
+    const text = await response.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    
+    const rows = json.table.rows;
+    let remaining = 0, paid = 0, overdue = 0, pending = 0, expenses = [];
+    
+    rows.forEach(row => {
+      const v = row.c;
+      if (!v[0] || !v[6]) return;
+      
+      const expense = String(v[0].v || "").trim();
+      const amount = Number(v[1]?.v || 0);
+      const dueDate = v[2]?.v;
+      const paidValue = v[3]?.v;
+      const daysLeft = Number(v[5]?.v || 0);
+      const code = String(v[6]?.v || "").trim();
+      const icon = String(v[7]?.v || "💰").trim();
+      
+      if (expense === "TOTAL" || !code) return;
+      
+      if (!paidValue) {
+        pending++;
+        remaining += amount;
+        if (daysLeft < 0) overdue++;
+        expenses.push({ expense, amount, dueDate, daysLeft, code, icon });
+      } else {
+        paid += amount;
+      }
+    });
+    
+    expenses.sort((a, b) => a.daysLeft - b.daysLeft);
+    displayData({ remaining, paid, overdue, pending, expenses });
+  } catch (e) {
+    document.getElementById("expenses").innerHTML = '<div class="empty">⚠️ Error loading data</div>';
+  }
+}
+
+function displayData(data) {
+  const remaining = Number(data.remaining) || 0;
+  const paid = Number(data.paid) || 0;
+  const total = remaining + paid;
+  const percent = total > 0 ? (paid / total) * 100 : 0;
+
+  document.getElementById("remaining").textContent = "₹" + remaining.toLocaleString("en-IN");
+  document.getElementById("progress").style.width = Math.min(100, percent) + "%";
+  document.getElementById("paidLabel").textContent = "₹" + paid.toLocaleString("en-IN") + " paid";
+  document.getElementById("totalLabel").textContent = "₹" + total.toLocaleString("en-IN") + " total";
+  document.getElementById("pendingCount").textContent = data.pending || 0;
+  document.getElementById("overdueCount").textContent = data.overdue || 0;
+
+  if (data.expenses.length === 0) {
+    document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div>All Clear!</div>';
+  } else {
+    const groups = { overdue: [], today: [], tomorrow: [], upcoming: [] };
+    data.expenses.forEach(e => {
+      if (e.daysLeft < 0) groups.overdue.push(e);
+      else if (e.daysLeft === 0) groups.today.push(e);
+      else if (e.daysLeft === 1) groups.tomorrow.push(e);
+      else groups.upcoming.push(e);
+    });
+
+    let html = "";
+    if (groups.overdue.length > 0) html += '<div class="group-title">🔴 Overdue</div>' + groups.overdue.map(e => makeCard(e, "overdue")).join("");
+    if (groups.today.length > 0) html += '<div class="group-title">🟠 Due Today</div>' + groups.today.map(e => makeCard(e, "today")).join("");
+    if (groups.tomorrow.length > 0) html += '<div class="group-title">🟡 Due Tomorrow</div>' + groups.tomorrow.map(e => makeCard(e, "tomorrow")).join("");
+    if (groups.upcoming.length > 0) html += '<div class="group-title">🔵 Upcoming</div>' + groups.upcoming.map(e => makeCard(e, "upcoming")).join("");
+    
+    document.getElementById("expenses").innerHTML = html;
+  }
+}
+
+function makeCard(e, type) {
+  const badgeClass = "badge-" + type;
+  const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟠 DUE TODAY" : type === "tomorrow" ? "🟡 DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
+  const date = new Date(e.dueDate).toLocaleDateString("en-IN");
+  return '<div class="expense-card"><div class="expense-icon">' + e.icon + '</div><div class="expense-name">' + e.expense + '</div><div class="expense-amount">₹' + Number(e.amount).toLocaleString("en-IN") + '</div><div class="expense-date">' + date + '</div><div class="badge ' + badgeClass + '">' + badgeText + '</div></div>';
+}
+
+document.getElementById("refreshBtn").onclick = loadData;
+window.addEventListener("load", loadData);
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
