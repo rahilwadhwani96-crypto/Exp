@@ -393,14 +393,23 @@
     }
     
     .success-message {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid var(--green);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(110, 231, 183, 0.1));
+      border: 2px solid var(--green);
       color: #6ee7b7;
-      padding: 12px 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      font-size: 13px;
-      animation: fadeIn 0.3s ease-out;
+      padding: 16px 20px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 600px) {
@@ -470,7 +479,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAv
 
 // 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
 // Replace this with your deployment URL from Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1htLb4GGod62h_J2hrrcYHLsDykwQKCnzMT_jWpESEQoWYNUd_OI9epLbMbQ9dmIG/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQGhrdeSEM-qLFS27nm-Mj2Ucm0u-xAGjaesKjfWdUgNiDUbv62YhLd2sueTQLtL2Xhw/exec";
 // =========================================================================
 
 let allExpenses = [];
@@ -615,10 +624,16 @@ async function markPaid(code) {
       method: 'POST',
       body: JSON.stringify({ action: 'markPaid', code: code })
     });
-    showSuccess("✓ Marked as paid!");
-    setTimeout(loadData, 500);
+    const result = await response.json();
+    if (result.success) {
+      showSuccess("✅ " + result.message);
+      // Wait 1.5 seconds then refresh data
+      setTimeout(loadData, 1500);
+    } else {
+      showSuccess("❌ Error: " + result.message);
+    }
   } catch (e) {
-    showSuccess("❌ Error: Check Apps Script URL");
+    showSuccess("❌ Error: Check Apps Script URL - " + e.message);
   }
 }
 
@@ -638,14 +653,19 @@ async function addExtra() {
       method: 'POST',
       body: JSON.stringify({ action: 'addExtra', amount: Number(amt), comment: cmt })
     });
+    const result = await response.json();
     
-    document.getElementById("amount").value = "";
-    document.getElementById("comment").value = "";
-    
-    showSuccess("✓ Expense added to sheet!");
-    setTimeout(loadData, 500);
+    if (result.success) {
+      document.getElementById("amount").value = "";
+      document.getElementById("comment").value = "";
+      showSuccess("✅ " + result.message);
+      // Wait 1.5 seconds then refresh data
+      setTimeout(loadData, 1500);
+    } else {
+      showSuccess("❌ Error: " + result.message);
+    }
   } catch (e) {
-    showSuccess("❌ Error: Check Apps Script URL");
+    showSuccess("❌ Error: Check Apps Script URL - " + e.message);
   }
 }
 
@@ -656,7 +676,10 @@ function loadHistory() {
 function showSuccess(msg) {
   const div = document.getElementById("successMessage");
   div.innerHTML = `<div class="success-message">${msg}</div>`;
-  setTimeout(() => div.innerHTML = "", 2500);
+  // Keep message visible for 3.5 seconds
+  setTimeout(() => {
+    div.innerHTML = "";
+  }, 3500);
 }
 
 document.getElementById("refreshBtn").onclick = loadData;
