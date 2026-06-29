@@ -393,18 +393,22 @@
     }
     
     .success-message {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(110, 231, 183, 0.1));
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(110, 231, 183, 0.2));
       border: 2px solid var(--green);
       color: #6ee7b7;
-      padding: 16px 20px;
+      padding: 20px 24px;
       border-radius: 16px;
-      margin-bottom: 16px;
-      font-size: 14px;
-      font-weight: 700;
+      margin: 0 0 24px 0;
+      font-size: 15px;
+      font-weight: 800;
       animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
       text-align: center;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     
     @keyframes slideDown {
@@ -488,7 +492,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAv
 
 // 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
 // Replace this with your deployment URL from Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFytwHUJKR1cOrBH9FTfJ15LGP-yVJVcrtEqxNWtK5d62sJ8KeEvL7CYKhdbY3m-vb/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-cOOt0mzqSS6z1hi5YoRjFjETBS3IqfPl6Er1Q9dvPv-P20AOJpx41uwRGJwnVQh7Qw/exec";
 // =========================================================================
 
 let allExpenses = [];
@@ -695,10 +699,10 @@ function loadHistory() {
 function showSuccess(msg) {
   const div = document.getElementById("successMessage");
   div.innerHTML = `<div class="success-message">${msg}</div>`;
-  // Keep message visible for 3.5 seconds
+  // Keep message visible for 4 seconds
   setTimeout(() => {
     div.innerHTML = "";
-  }, 3500);
+  }, 4000);
 }
 
 document.getElementById("refreshBtn").onclick = loadData;
