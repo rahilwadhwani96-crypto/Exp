@@ -411,6 +411,15 @@
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(100px); }
+    }
+    
+    .expense-card.removing {
+      animation: fadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
 
     @media (max-width: 600px) {
       .title { font-size: 28px; }
@@ -479,7 +488,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAv
 
 // 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
 // Replace this with your deployment URL from Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQGhrdeSEM-qLFS27nm-Mj2Ucm0u-xAGjaesKjfWdUgNiDUbv62YhLd2sueTQLtL2Xhw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFytwHUJKR1cOrBH9FTfJ15LGP-yVJVcrtEqxNWtK5d62sJ8KeEvL7CYKhdbY3m-vb/exec";
 // =========================================================================
 
 let allExpenses = [];
@@ -520,7 +529,7 @@ async function loadData() {
       const code = row['Code'] || '';
       const icon = row['Icon'] || '💰';
       
-      if (!expense || expense === 'TOTAL' || !code) return;
+      if (!expense || expense === 'TOTAL' || !code || expense === 'Extra') return; // Skip Extra row
       
       if (!paidValue || paidValue === '') {
         pending++;
@@ -590,7 +599,7 @@ function makeCard(e, type) {
   const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟡 DUE TODAY" : type === "tomorrow" ? "✨ DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
   const date = new Date(e.dueDate).toLocaleDateString("en-IN");
   
-  return `<div class="expense-card">
+  return `<div class="expense-card" data-code="${e.code}">
     <div class="expense-header">
       <div style="flex: 1;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -627,13 +636,23 @@ async function markPaid(code) {
     const result = await response.json();
     if (result.success) {
       showSuccess("✅ " + result.message);
-      // Wait 1.5 seconds then refresh data
+      
+      // Animate card fade out and remove from DOM
+      const card = document.querySelector(`[data-code="${code}"]`);
+      if (card) {
+        card.classList.add("removing");
+        setTimeout(() => {
+          card.remove();
+        }, 500);
+      }
+      
+      // Refresh data after 1.5 seconds
       setTimeout(loadData, 1500);
     } else {
       showSuccess("❌ Error: " + result.message);
     }
   } catch (e) {
-    showSuccess("❌ Error: Check Apps Script URL - " + e.message);
+    showSuccess("❌ Error: Check Apps Script URL");
   }
 }
 
@@ -685,7 +704,30 @@ function showSuccess(msg) {
 document.getElementById("refreshBtn").onclick = loadData;
 document.getElementById("addBtn").onclick = addExtra;
 document.getElementById("nextBtn").onclick = () => alert("📅 Update due dates in Google Sheet, then refresh this app.");
-document.getElementById("resetBtn").onclick = () => { if(confirm("Reset all paid entries in the sheet?")) { alert("⚠️ Use Google Sheet to reset, then refresh."); } };
+document.getElementById("resetBtn").onclick = async function() {
+  if (confirm("⚠️ Reset all paid entries in the sheet?")) {
+    if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
+      showSuccess("⚠️ Please add Apps Script URL first!");
+      return;
+    }
+    try {
+      showSuccess("⏳ Resetting...");
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'resetPaid' })
+      });
+      const result = await response.json();
+      if (result.success) {
+        showSuccess("✅ " + result.message);
+        setTimeout(loadData, 1500);
+      } else {
+        showSuccess("❌ Error: " + result.message);
+      }
+    } catch (e) {
+      showSuccess("❌ Error: Check Apps Script URL");
+    }
+  }
+};
 
 window.addEventListener("load", loadData);
 setInterval(loadData, 30000);
