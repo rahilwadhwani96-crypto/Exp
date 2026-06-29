@@ -36,20 +36,10 @@
     .badge-upcoming { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
     .button { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: all 0.3s; text-transform: uppercase; }
     .btn-primary { background: linear-gradient(135deg, var(--primary), #6366f1); color: white; }
-    .btn-success { background: var(--success); color: white; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-warning { background: var(--warning); color: #000; }
     .button:hover { transform: translateY(-2px); }
     .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
     .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    input { width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; margin-bottom: 10px; }
-    input::placeholder { color: var(--muted); }
     .loading { text-align: center; padding: 20px; color: var(--muted); }
-    .history-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; }
-    .history-info { text-align: left; flex: 1; }
-    .history-date { font-size: 11px; color: var(--muted); }
-    .history-comment { font-size: 13px; font-weight: 600; }
-    .history-amount { font-size: 16px; font-weight: 700; color: var(--primary); }
   </style>
 </head>
 <body>
@@ -88,33 +78,45 @@
 </div>
 
 <script>
- const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSo7enD9j76EAB0t6QTCKWAScDocNPjqZtATZjZNPk9zyK2ktbZJIVUFClQL_aEwj00eOYIQfyY0Vki/pub?gid=0&single=true&output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAvkI60IX3X4EutydUQf_vM/export?format=csv";
+
+function parseCSV(text) {
+  const lines = text.split('\n');
+  const headers = lines[0].split(',');
+  const rows = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const obj = {};
+    const values = lines[i].split(',');
+    headers.forEach((header, idx) => {
+      obj[header.trim()] = values[idx] ? values[idx].trim() : '';
+    });
+    rows.push(obj);
+  }
+  return rows;
+}
 
 async function loadData() {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/query?tq=SELECT * WHERE A IS NOT NULL&tqx=out:json&sheet=${SHEET_NAME}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const response = await fetch(CSV_URL);
+    const csv = await response.text();
+    const rows = parseCSV(csv);
     
-    const rows = json.table.rows;
     let remaining = 0, paid = 0, overdue = 0, pending = 0, expenses = [];
     
     rows.forEach(row => {
-      const v = row.c;
-      if (!v[0] || !v[6]) return;
+      const expense = row['Expense'] || '';
+      const amount = Number(row['Amount']) || 0;
+      const dueDate = row['Due date'] || '';
+      const paidValue = row['Paid'] || '';
+      const daysLeft = Number(row['Days Left']) || 0;
+      const code = row['Code'] || '';
+      const icon = row['Icon'] || '💰';
       
-      const expense = String(v[0].v || "").trim();
-      const amount = Number(v[1]?.v || 0);
-      const dueDate = v[2]?.v;
-      const paidValue = v[3]?.v;
-      const daysLeft = Number(v[5]?.v || 0);
-      const code = String(v[6]?.v || "").trim();
-      const icon = String(v[7]?.v || "💰").trim();
+      if (!expense || expense === 'TOTAL' || !code) return;
       
-      if (expense === "TOTAL" || !code) return;
-      
-      if (!paidValue) {
+      if (!paidValue || paidValue === '') {
         pending++;
         remaining += amount;
         if (daysLeft < 0) overdue++;
@@ -127,7 +129,8 @@ async function loadData() {
     expenses.sort((a, b) => a.daysLeft - b.daysLeft);
     displayData({ remaining, paid, overdue, pending, expenses });
   } catch (e) {
-    document.getElementById("expenses").innerHTML = '<div class="empty">⚠️ Error loading data</div>';
+    console.error(e);
+    document.getElementById("expenses").innerHTML = '<div class="empty">⚠️ Error: ' + e.message + '</div>';
   }
 }
 
