@@ -766,8 +766,73 @@ document.getElementById("resetBtn").onclick = async function() {
   }
 };
 
-window.addEventListener("load", loadData);
+// Check for upcoming dues and show browser notification
+function checkUpcomingDues() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const response = fetch(CSV_URL);
+      response.then(res => res.text()).then(csv => {
+        const rows = parseCSV(csv);
+        const upcomingDues = [];
+        
+        rows.forEach(row => {
+          const expense = row['Expense'] || '';
+          const daysLeft = Number(row['Days Left']) || 0;
+          const paidValue = row['Paid'] || '';
+          
+          // Check for unpaid expenses due today or tomorrow
+          if (!paidValue && (daysLeft === 0 || daysLeft === 1) && expense && expense !== 'TOTAL' && expense !== 'Extra') {
+            upcomingDues.push({
+              name: expense,
+              daysLeft: daysLeft,
+              amount: row['Amount']
+            });
+          }
+        });
+        
+        // Show notification if there are upcoming dues
+        if (upcomingDues.length > 0) {
+          let title = '💳 Expense Reminder!';
+          let message = '';
+          
+          if (upcomingDues.length === 1) {
+            const due = upcomingDues[0];
+            message = due.daysLeft === 0 
+              ? `${due.name} (₹${due.amount}) is due TODAY!`
+              : `${due.name} (₹${due.amount}) is due TOMORROW!`;
+          } else {
+            const today = upcomingDues.filter(d => d.daysLeft === 0).length;
+            const tomorrow = upcomingDues.filter(d => d.daysLeft === 1).length;
+            message = `${today} due today, ${tomorrow} due tomorrow`;
+          }
+          
+          new Notification(title, {
+            body: message,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%23000000" width="192" height="192"/><text x="96" y="120" font-size="100" font-weight="900" fill="%23d4af37" text-anchor="middle" font-family="Arial">💰</text></svg>',
+            tag: 'expense-reminder',
+            requireInteraction: false
+          });
+        }
+      });
+    } catch (e) {
+      console.log('Notification error:', e);
+    }
+  }
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+
 setInterval(loadData, 30000);
+setInterval(checkUpcomingDues, 21600000); // Check every 6 hours for reminders
+
+window.addEventListener("load", function() {
+  loadData();
+  checkUpcomingDues(); // Check for upcoming dues on load
+});
 </script>
 </body>
 </html>
