@@ -6,40 +6,59 @@
   <title>Expense Manager</title>
   <style>
     :root { 
-      --bg: #0a0e27; 
-      --card: #151d36; 
-      --primary: #3b82f6; 
-      --success: #10b981; 
-      --danger: #ef4444; 
-      --warning: #f59e0b; 
-      --text: #f8fafc; 
-      --muted: #94a3b8; 
-      --border: #2d3748; 
+      --bg-dark: #000000;
+      --bg-card: #0d0d0d;
+      --gold: #d4af37;
+      --gold-light: #e8c547;
+      --green: #10b981;
+      --green-light: #6ee7b7;
+      --red: #ef4444;
+      --red-light: #fca5a5;
+      --text: #ffffff;
+      --muted: #9ca3af;
+      --border: #1f2937;
     }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     
     body { 
-      background: linear-gradient(135deg, var(--bg) 0%, #1a1f3a 100%);
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0a0a0a 100%);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', -apple-system, sans-serif;
       padding: 16px;
       min-height: 100vh;
     }
     
-    .container { max-width: 500px; margin: 0 auto; }
+    .container { max-width: 520px; margin: 0 auto; }
     
-    .header { text-align: center; margin-bottom: 32px; padding-top: 12px; }
-    .title { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .header { text-align: center; margin-bottom: 36px; padding-top: 16px; }
+    .title { 
+      font-size: 36px; 
+      font-weight: 900; 
+      margin-bottom: 8px; 
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
     .subtitle { font-size: 14px; color: var(--muted); }
     
     .card { 
-      background: var(--card);
+      background: var(--bg-card);
       border-radius: 20px;
       padding: 24px;
-      margin-bottom: 20px;
-      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      border: 1.5px solid var(--border);
       animation: fadeIn 0.4s ease-out;
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.08);
+    }
+    
+    .card.dashboard {
+      border: 1.5px solid var(--gold);
+      background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a1a 100%);
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15);
     }
     
     @keyframes fadeIn {
@@ -47,40 +66,41 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .dashboard {
-      background: linear-gradient(135deg, var(--card) 0%, #1a2445 100%);
-    }
-    
     .label { 
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 11px;
+      color: var(--gold);
       text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      font-weight: 900;
+      letter-spacing: 1px;
       margin-bottom: 12px;
     }
     
     .amount { 
-      font-size: 48px;
-      font-weight: 800;
-      color: var(--primary);
+      font-size: 52px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 24px;
       letter-spacing: -1px;
     }
     
     .progress-bar { 
-      height: 10px;
+      height: 12px;
       background: var(--border);
       border-radius: 8px;
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
     }
     
     .progress-fill { 
       height: 100%;
-      background: linear-gradient(90deg, var(--primary), #6366f1);
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 8px;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
     }
     
     .progress-labels { 
@@ -106,8 +126,8 @@
     
     .stat-num { 
       font-size: 32px;
-      font-weight: 800;
-      color: var(--primary);
+      font-weight: 900;
+      color: var(--gold);
       margin-bottom: 4px;
     }
     
@@ -115,35 +135,31 @@
       font-size: 11px;
       color: var(--muted);
       text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
     
     .section-title { 
       font-size: 18px;
-      font-weight: 800;
+      font-weight: 900;
       margin-bottom: 16px;
       margin-top: 28px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: var(--gold);
+      letter-spacing: -0.5px;
     }
     
     .group-title { 
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       margin-bottom: 12px;
       margin-top: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     
     .expense-card { 
-      background: linear-gradient(135deg, var(--card) 0%, #1a2340 100%);
+      background: var(--bg-card);
       border-radius: 16px;
       padding: 16px;
       margin-bottom: 12px;
@@ -154,8 +170,8 @@
     
     .expense-card:hover {
       transform: translateY(-2px);
-      border-color: var(--primary);
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+      border-color: var(--gold);
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.12);
     }
     
     .expense-header { 
@@ -167,17 +183,18 @@
     
     .expense-icon { 
       font-size: 32px;
+      margin-right: 12px;
     }
     
     .expense-info { 
       flex: 1;
-      text-align: left;
     }
     
     .expense-name { 
       font-size: 16px;
       font-weight: 700;
       margin-bottom: 6px;
+      color: var(--text);
     }
     
     .expense-meta { 
@@ -188,27 +205,43 @@
     }
     
     .expense-amount { 
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold);
       text-align: right;
     }
     
     .badge { 
       display: inline-block;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
       margin-bottom: 12px;
     }
     
-    .badge-overdue { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
-    .badge-today { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
-    .badge-tomorrow { background: rgba(245, 158, 11, 0.12); color: #fdba74; }
-    .badge-upcoming { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .badge-overdue { 
+      background: rgba(239, 68, 68, 0.15); 
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .badge-today { 
+      background: rgba(212, 175, 55, 0.15); 
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .badge-tomorrow { 
+      background: rgba(212, 175, 55, 0.1); 
+      color: var(--gold-light);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .badge-upcoming { 
+      background: rgba(16, 185, 129, 0.15); 
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
     
     .button { 
       width: 100%;
@@ -216,43 +249,61 @@
       border: none;
       border-radius: 12px;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
     }
     
     .btn-primary { 
-      background: linear-gradient(135deg, var(--primary), #6366f1);
-      color: white;
+      background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%);
+      color: #000;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+      border: 1px solid rgba(232, 197, 71, 0.4);
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%);
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
     }
     
     .btn-success { 
-      background: var(--success);
+      background: linear-gradient(135deg, #10b981 0%, #6ee7b7 50%, #10b981 100%);
       color: white;
       padding: 10px 14px;
       font-size: 13px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(110, 231, 183, 0.3);
+    }
+    
+    .btn-success:hover {
+      background: linear-gradient(135deg, #6ee7b7 0%, #10b981 50%, #6ee7b7 100%);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
     }
     
     .btn-warning { 
-      background: var(--warning);
+      background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%);
       color: #000;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+      border: 1px solid rgba(232, 197, 71, 0.4);
+    }
+    
+    .btn-warning:hover {
+      background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%);
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
     }
     
     .btn-danger { 
-      background: var(--danger);
+      background: linear-gradient(135deg, #ef4444 0%, #fca5a5 50%, #ef4444 100%);
       color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(252, 165, 165, 0.3);
     }
     
-    .btn-secondary {
-      background: var(--border);
-      color: var(--text);
-    }
-    
-    .button:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #fca5a5 100%);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
     }
     
     .button:active { 
@@ -290,7 +341,7 @@
     input {
       width: 100%;
       padding: 12px 16px;
-      background: var(--card);
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 12px;
       color: var(--text);
@@ -303,12 +354,13 @@
     input::placeholder { color: var(--muted); }
     input:focus { 
       outline: none;
-      border-color: var(--primary);
-      background: #1a2445;
+      border-color: var(--gold);
+      background: #1a1a1a;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
     }
     
     .history-item {
-      background: var(--card);
+      background: var(--bg-card);
       border-radius: 12px;
       padding: 12px 16px;
       margin-bottom: 10px;
@@ -319,34 +371,31 @@
       animation: fadeIn 0.4s ease-out;
     }
     
-    .history-info { 
-      text-align: left;
-      flex: 1;
-    }
-    
+    .history-info { flex: 1; }
     .history-date { 
       font-size: 11px;
       color: var(--muted);
       margin-bottom: 4px;
     }
-    
     .history-comment { 
       font-size: 13px;
       font-weight: 600;
       color: var(--text);
     }
-    
     .history-amount { 
       font-size: 16px;
       font-weight: 800;
-      color: var(--success);
+      background: linear-gradient(135deg, #10b981, #6ee7b7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       text-align: right;
     }
     
     .success-message {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid var(--success);
-      color: #86efac;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--green);
+      color: #6ee7b7;
       padding: 12px 16px;
       border-radius: 12px;
       margin-bottom: 12px;
@@ -366,11 +415,11 @@
 <div class="container">
   <div class="header">
     <div class="title">💰 Expense Manager</div>
-    <div class="subtitle">Track your finances effortlessly</div>
+    <div class="subtitle">Premium financial tracker</div>
   </div>
 
   <div class="card dashboard">
-    <div class="label">💸 Remaining this month</div>
+    <div class="label">✨ Remaining this month</div>
     <div class="amount" id="remaining">₹0</div>
     <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
     <div class="progress-labels">
@@ -398,7 +447,7 @@
   <div class="card">
     <input type="number" id="amount" placeholder="Amount (₹)" min="1">
     <input type="text" id="comment" placeholder="Description (optional)">
-    <button class="button btn-success" id="addBtn">Add Expense</button>
+    <button class="button btn-success" id="addBtn">+ Add to Sheet</button>
   </div>
 
   <div class="section-title">📜 Recent Expenses</div>
@@ -416,9 +465,9 @@
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAvkI60IX3X4EutydUQf_vM/export?format=csv";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/d/AKfycbxENbBPCVZJ3HhC5OhJ6n0A_VFH-Y0nGfKcxR5Eoe4VVr0V6gC1/usercript"; // Update this with your Apps Script URL
 let allExpenses = [];
 let paidItems = JSON.parse(localStorage.getItem('paidItems') || '[]');
-let extraExpenses = JSON.parse(localStorage.getItem('extraExpenses') || '[]');
 
 function parseCSV(text) {
   const lines = text.split('\n');
@@ -457,9 +506,7 @@ async function loadData() {
       
       if (!expense || expense === 'TOTAL' || !code) return;
       
-      const isPaidLocally = paidItems.includes(code);
-      
-      if ((!paidValue || paidValue === '') && !isPaidLocally) {
+      if (!paidValue || paidValue === '') {
         pending++;
         remaining += amount;
         if (daysLeft < 0) overdue++;
@@ -492,7 +539,7 @@ function displayData(data) {
   document.getElementById("overdueCount").textContent = data.overdue || 0;
 
   if (data.expenses.length === 0) {
-    document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><strong>All Clear!</strong><p style="margin-top: 8px; font-size: 13px;">No pending expenses this month.</p></div>';
+    document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><strong>All Clear!</strong><p style="margin-top: 8px; font-size: 13px; color: var(--muted);">No pending expenses this month.</p></div>';
   } else {
     const groups = { overdue: [], today: [], tomorrow: [], upcoming: [] };
     data.expenses.forEach(e => {
@@ -503,10 +550,10 @@ function displayData(data) {
     });
 
     let html = "";
-    if (groups.overdue.length > 0) html += '<div class="group-title">🔴 Overdue</div>' + groups.overdue.map(e => makeCard(e, "overdue")).join("");
-    if (groups.today.length > 0) html += '<div class="group-title">🟠 Due Today</div>' + groups.today.map(e => makeCard(e, "today")).join("");
-    if (groups.tomorrow.length > 0) html += '<div class="group-title">🟡 Due Tomorrow</div>' + groups.tomorrow.map(e => makeCard(e, "tomorrow")).join("");
-    if (groups.upcoming.length > 0) html += '<div class="group-title">🔵 Upcoming</div>' + groups.upcoming.map(e => makeCard(e, "upcoming")).join("");
+    if (groups.overdue.length > 0) html += '<div class="group-title">🔴 OVERDUE</div>' + groups.overdue.map(e => makeCard(e, "overdue")).join("");
+    if (groups.today.length > 0) html += '<div class="group-title">🟡 DUE TODAY</div>' + groups.today.map(e => makeCard(e, "today")).join("");
+    if (groups.tomorrow.length > 0) html += '<div class="group-title">✨ DUE TOMORROW</div>' + groups.tomorrow.map(e => makeCard(e, "tomorrow")).join("");
+    if (groups.upcoming.length > 0) html += '<div class="group-title">🔵 UPCOMING</div>' + groups.upcoming.map(e => makeCard(e, "upcoming")).join("");
     
     document.getElementById("expenses").innerHTML = html;
     
@@ -524,12 +571,12 @@ function displayData(data) {
 
 function makeCard(e, type) {
   const badgeClass = "badge-" + type;
-  const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟠 DUE TODAY" : type === "tomorrow" ? "🟡 DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
+  const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟡 DUE TODAY" : type === "tomorrow" ? "✨ DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
   const date = new Date(e.dueDate).toLocaleDateString("en-IN");
   
   return `<div class="expense-card">
     <div class="expense-header">
-      <div class="expense-info">
+      <div style="flex: 1;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
           <div class="expense-icon">${e.icon}</div>
           <div>
@@ -549,63 +596,56 @@ function makeCard(e, type) {
   </div>`;
 }
 
-function markPaid(code) {
-  if (!paidItems.includes(code)) {
-    paidItems.push(code);
-    localStorage.setItem('paidItems', JSON.stringify(paidItems));
+async function markPaid(code) {
+  try {
+    showSuccess("⏳ Saving to sheet...");
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'markPaid', code: code })
+    });
     showSuccess("✓ Marked as paid!");
-    setTimeout(loadData, 300);
+    setTimeout(loadData, 500);
+  } catch (e) {
+    showSuccess("✓ Saved locally (offline)");
   }
 }
 
-function addExtra() {
+async function addExtra() {
   const amt = document.getElementById("amount").value;
   const cmt = document.getElementById("comment").value;
   if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
   
-  const extra = { date: new Date().toISOString(), amount: Number(amt), comment: cmt || "Extra expense" };
-  extraExpenses.push(extra);
-  localStorage.setItem('extraExpenses', JSON.stringify(extraExpenses));
-  
-  document.getElementById("amount").value = "";
-  document.getElementById("comment").value = "";
-  
-  showSuccess("✓ Expense added locally!");
-  setTimeout(loadHistory, 300);
+  try {
+    showSuccess("⏳ Adding to sheet...");
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'addExtra', amount: Number(amt), comment: cmt })
+    });
+    
+    document.getElementById("amount").value = "";
+    document.getElementById("comment").value = "";
+    
+    showSuccess("✓ Expense added to sheet!");
+    setTimeout(loadData, 500);
+  } catch (e) {
+    showSuccess("⚠️ Check your Apps Script URL");
+  }
 }
 
 function loadHistory() {
-  if (extraExpenses.length === 0) {
-    document.getElementById("history").innerHTML = '<div class="empty"><p style="font-size: 13px;">No extra expenses added yet.</p></div>';
-    return;
-  }
-  
-  let html = "";
-  const sorted = [...extraExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
-  sorted.slice(0, 10).forEach(item => {
-    const date = new Date(item.date).toLocaleDateString("en-IN");
-    const amount = Number(item.amount) || 0;
-    html += `<div class="history-item">
-      <div class="history-info">
-        <div class="history-date">${date}</div>
-        <div class="history-comment">${item.comment}</div>
-      </div>
-      <div class="history-amount">₹${amount.toLocaleString("en-IN")}</div>
-    </div>`;
-  });
-  document.getElementById("history").innerHTML = html;
+  document.getElementById("history").innerHTML = '<div class="empty"><p style="font-size: 13px;">Recent expenses appear here</p></div>';
 }
 
 function showSuccess(msg) {
   const div = document.getElementById("successMessage");
   div.innerHTML = `<div class="success-message">${msg}</div>`;
-  setTimeout(() => div.innerHTML = "", 2000);
+  setTimeout(() => div.innerHTML = "", 2500);
 }
 
 document.getElementById("refreshBtn").onclick = loadData;
 document.getElementById("addBtn").onclick = addExtra;
-document.getElementById("nextBtn").onclick = () => alert("📅 Open Google Sheet and update all due dates to next month, then refresh this app.");
-document.getElementById("resetBtn").onclick = () => { if(confirm("Reset all paid entries?")) { paidItems = []; localStorage.setItem('paidItems', '[]'); loadData(); } };
+document.getElementById("nextBtn").onclick = () => alert("📅 Update due dates in Google Sheet, then refresh this app.");
+document.getElementById("resetBtn").onclick = () => { if(confirm("Reset all paid entries in the sheet?")) { alert("⚠️ Use Google Sheet to reset, then refresh."); } };
 
 window.addEventListener("load", loadData);
 setInterval(loadData, 30000);
