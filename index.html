@@ -492,7 +492,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAv
 
 // 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
 // Replace this with your deployment URL from Google Apps Script
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-cOOt0mzqSS6z1hi5YoRjFjETBS3IqfPl6Er1Q9dvPv-P20AOJpx41uwRGJwnVQh7Qw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZNGJHtmXjHfLserjyMNW-5eGTnsPA-aA9eGE1PIVt2JtmrWT61_tiB2pOb3ZFuKBk8w/exec";
 // =========================================================================
 
 let allExpenses = [];
@@ -692,8 +692,33 @@ async function addExtra() {
   }
 }
 
-function loadHistory() {
-  document.getElementById("history").innerHTML = '<div class="empty"><p style="font-size: 13px;">Recent expenses appear here</p></div>';
+async function loadHistory() {
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'getHistory' })
+    });
+    const result = await response.json();
+    
+    if (result.success && result.data && result.data.length > 0) {
+      let html = "";
+      result.data.forEach(item => {
+        const amount = Number(item.amount) || 0;
+        html += `<div class="history-item">
+          <div class="history-info">
+            <div class="history-date">${item.date}</div>
+            <div class="history-comment">${item.comment || "Extra expense"}</div>
+          </div>
+          <div class="history-amount">₹${amount.toLocaleString("en-IN")}</div>
+        </div>`;
+      });
+      document.getElementById("history").innerHTML = html;
+    } else {
+      document.getElementById("history").innerHTML = '<div class="empty"><p style="font-size: 13px;">No extra expenses added yet.</p></div>';
+    }
+  } catch (e) {
+    document.getElementById("history").innerHTML = '<div class="empty"><p style="font-size: 13px;">No extra expenses added yet.</p></div>';
+  }
 }
 
 function showSuccess(msg) {
