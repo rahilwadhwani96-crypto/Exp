@@ -2,9 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Premium financial tracker - track expenses effortlessly">
-  <meta name="theme-color" content="#d4af37">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Expenses">
@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <title>Expense Manager</title>
   <style>
-    :root { 
+    :root {
       --bg-dark: #000000;
       --bg-card: #0d0d0d;
       --gold: #d4af37;
@@ -26,55 +26,163 @@
       --muted: #9ca3af;
       --border: #1f2937;
     }
-    
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    
-    body { 
+    html, body { height: 100%; overscroll-behavior-y: contain; }
+
+    body {
       background: linear-gradient(135deg, var(--bg-dark) 0%, #0a0a0a 100%);
       color: var(--text);
       font-family: 'Segoe UI', -apple-system, sans-serif;
-      padding: 16px;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
     }
-    
-    .container { max-width: 520px; margin: 0 auto; }
-    
-    .header { text-align: center; margin-bottom: 36px; padding-top: 16px; }
-    .title { 
-      font-size: 36px; 
-      font-weight: 900; 
-      margin-bottom: 8px; 
+
+    /* Ambient blurred orbs behind the glass panels, iOS control-center style */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .orb-gold { width: 280px; height: 280px; background: var(--gold); opacity: 0.16; top: -90px; left: -70px; }
+    .orb-green { width: 240px; height: 240px; background: var(--green); opacity: 0.12; bottom: -70px; right: -60px; }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---------- Glass surfaces ---------- */
+    .glass {
+      background: rgba(13, 13, 13, 0.55);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(env(safe-area-inset-top) + 14px) 20px 14px;
+      position: relative;
+      z-index: 5;
+      background: rgba(8, 8, 8, 0.65);
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 900;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -1px;
+      letter-spacing: -0.5px;
     }
-    .subtitle { font-size: 14px; color: var(--muted); }
-    
-    .card { 
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 24px;
-      border: 1.5px solid var(--border);
-      animation: fadeIn 0.4s ease-out;
-      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.08);
+    .topbar-refresh {
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      color: var(--gold);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
     }
-    
-    .card.dashboard {
-      border: 1.5px solid var(--gold);
-      background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a1a 100%);
-      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15);
+    .topbar-refresh:active { transform: scale(0.9); }
+    .topbar-refresh.spinning { animation: spin 0.8s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ---------- Toast ---------- */
+    .toast-wrap {
+      position: absolute;
+      top: calc(env(safe-area-inset-top) + 62px);
+      left: 16px;
+      right: 16px;
+      z-index: 30;
+      pointer-events: none;
     }
-    
+    .success-message {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(110, 231, 183, 0.22));
+      border: 2px solid var(--green);
+      color: #6ee7b7;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 800;
+      animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
+      text-align: center;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ---------- Pages / scroll area ---------- */
+    .pages {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 16px 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .page { display: none; animation: fadeIn 0.35s ease-out; }
+    .page.active { display: block; }
+
+    .pull-indicator {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 50%;
+      color: var(--gold);
+      font-size: 16px;
+      opacity: 0;
+      z-index: 4;
+    }
+    .pull-indicator.spinning { animation: spin 0.7s linear infinite; }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
-    .label { 
+
+    /* ---------- Cards ---------- */
+    .card {
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.08);
+    }
+    .card.dashboard { box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15); }
+    .card.balance-card { box-shadow: 0 8px 32px rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.3); }
+
+    .label {
       font-size: 11px;
       color: var(--gold);
       text-transform: uppercase;
@@ -82,19 +190,34 @@
       letter-spacing: 1px;
       margin-bottom: 12px;
     }
-    
-    .amount { 
-      font-size: 52px;
+    .balance-card .label { color: var(--green-light); }
+
+    .amount {
+      font-size: 48px;
       font-weight: 900;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       letter-spacing: -1px;
     }
-    
-    .progress-bar { 
+    .amount-green {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .amount-red {
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .balance-card .amount { font-size: 42px; margin-bottom: 4px; }
+    .balance-sub { font-size: 12px; color: var(--muted); }
+
+    .progress-bar {
       height: 12px;
       background: var(--border);
       border-radius: 8px;
@@ -102,61 +225,40 @@
       margin-bottom: 14px;
       border: 1px solid rgba(212, 175, 55, 0.2);
     }
-    
-    .progress-fill { 
+    .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--gold), var(--gold-light));
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 8px;
       box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
     }
-    
-    .progress-labels { 
+    .progress-labels {
       display: flex;
       justify-content: space-between;
       font-size: 12px;
       color: var(--muted);
       margin-bottom: 20px;
     }
-    
-    .stats { 
+
+    .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
       padding-top: 20px;
       border-top: 1px solid var(--border);
     }
-    
-    .stat { 
-      text-align: center;
-      padding: 12px;
-    }
-    
-    .stat-num { 
-      font-size: 32px;
+    .stat { text-align: center; padding: 12px; }
+    .stat-num { font-size: 32px; font-weight: 900; color: var(--gold); margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+
+    .section-title {
+      font-size: 17px;
       font-weight: 900;
-      color: var(--gold);
-      margin-bottom: 4px;
-    }
-    
-    .stat-label { 
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-    
-    .section-title { 
-      font-size: 18px;
-      font-weight: 900;
-      margin-bottom: 16px;
-      margin-top: 28px;
+      margin-bottom: 14px;
       color: var(--gold);
       letter-spacing: -0.5px;
     }
-    
-    .group-title { 
+    .group-title {
       font-size: 12px;
       font-weight: 900;
       color: var(--muted);
@@ -165,8 +267,8 @@
       margin-bottom: 12px;
       margin-top: 20px;
     }
-    
-    .expense-card { 
+
+    .expense-card {
       background: var(--bg-card);
       border-radius: 16px;
       padding: 16px;
@@ -175,387 +277,257 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       animation: fadeIn 0.4s ease-out;
     }
-    
-    .expense-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--gold);
-      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.12);
-    }
-    
-    .expense-header { 
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-    
-    .expense-icon { 
-      font-size: 32px;
-      margin-right: 12px;
-    }
-    
-    .expense-info { 
-      flex: 1;
-    }
-    
-    .expense-name { 
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-    
-    .expense-meta { 
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      gap: 12px;
-    }
-    
-    .expense-amount { 
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--gold);
-      text-align: right;
-    }
-    
-    .badge { 
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 12px;
-    }
-    
-    .badge-overdue { 
-      background: rgba(239, 68, 68, 0.15); 
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    .badge-today { 
-      background: rgba(212, 175, 55, 0.15); 
-      color: var(--gold);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-    }
-    .badge-tomorrow { 
-      background: rgba(212, 175, 55, 0.1); 
-      color: var(--gold-light);
-      border: 1px solid rgba(212, 175, 55, 0.2);
-    }
-    .badge-upcoming { 
-      background: rgba(16, 185, 129, 0.15); 
-      color: #6ee7b7;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .button { 
-      width: 100%;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    
-    .btn-primary { 
-      background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%);
-      color: #000;
-      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
-      border: 1px solid rgba(232, 197, 71, 0.4);
-    }
-    
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%);
-      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
-    }
-    
-    .btn-success { 
-      background: linear-gradient(135deg, #10b981 0%, #6ee7b7 50%, #10b981 100%);
-      color: white;
-      padding: 10px 14px;
-      font-size: 13px;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-      border: 1px solid rgba(110, 231, 183, 0.3);
-    }
-    
-    .btn-success:hover {
-      background: linear-gradient(135deg, #6ee7b7 0%, #10b981 50%, #6ee7b7 100%);
-      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-    }
-    
-    .btn-warning { 
-      background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%);
-      color: #000;
-      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
-      border: 1px solid rgba(232, 197, 71, 0.4);
-    }
-    
-    .btn-warning:hover {
-      background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%);
-      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
-    }
-    
-    .btn-danger { 
-      background: linear-gradient(135deg, #ef4444 0%, #fca5a5 50%, #ef4444 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-      border: 1px solid rgba(252, 165, 165, 0.3);
-    }
-    
-    .btn-danger:hover {
-      background: linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #fca5a5 100%);
-      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-    }
-    
-    .button:active { 
-      transform: scale(0.98);
-    }
-    
-    .button-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    
-    .button-group.full { 
-      grid-template-columns: 1fr;
-    }
-    
-    .empty { 
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-    }
-    
-    .empty-icon { 
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-    
-    .loading { 
-      text-align: center;
-      padding: 24px;
-      color: var(--muted);
-    }
-    
+    .expense-card:hover { transform: translateY(-2px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(212, 175, 55, 0.12); }
+    .expense-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .expense-icon { font-size: 32px; margin-right: 12px; }
+    .expense-info { flex: 1; }
+    .expense-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .expense-meta { font-size: 12px; color: var(--muted); display: flex; gap: 12px; }
+    .expense-amount { font-size: 22px; font-weight: 900; color: var(--gold); text-align: right; }
+
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 12px; }
+    .badge-overdue { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-today { background: rgba(212, 175, 55, 0.15); color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.3); }
+    .badge-tomorrow { background: rgba(212, 175, 55, 0.1); color: var(--gold-light); border: 1px solid rgba(212, 175, 55, 0.2); }
+    .badge-upcoming { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .button { width: 100%; padding: 12px 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; letter-spacing: 0.4px; }
+    .btn-primary { background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%); color: #000; box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3); border: 1px solid rgba(232, 197, 71, 0.4); }
+    .btn-primary:hover { background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%); box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5); }
+    .btn-success { background: linear-gradient(135deg, #10b981 0%, #6ee7b7 50%, #10b981 100%); color: white; padding: 10px 14px; font-size: 13px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); border: 1px solid rgba(110, 231, 183, 0.3); }
+    .btn-success:hover { background: linear-gradient(135deg, #6ee7b7 0%, #10b981 50%, #6ee7b7 100%); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
+    .btn-warning { background: linear-gradient(135deg, #d4af37 0%, #e8c547 50%, #d4af37 100%); color: #000; box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3); border: 1px solid rgba(232, 197, 71, 0.4); }
+    .btn-warning:hover { background: linear-gradient(135deg, #e8c547 0%, #d4af37 50%, #e8c547 100%); box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #fca5a5 50%, #ef4444 100%); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border: 1px solid rgba(252, 165, 165, 0.3); }
+    .btn-danger:hover { background: linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #fca5a5 100%); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
+    .button:active { transform: scale(0.98); }
+
+    .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .button-group.full { grid-template-columns: 1fr; }
+
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 24px; color: var(--muted); }
+
     input {
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      font-size: 14px;
-      margin-bottom: 12px;
-      font-family: inherit;
-      transition: all 0.3s;
+      width: 100%; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 14px; margin-bottom: 12px; font-family: inherit; transition: all 0.3s;
     }
-    
     input::placeholder { color: var(--muted); }
-    input:focus { 
-      outline: none;
-      border-color: var(--gold);
-      background: #1a1a1a;
-      box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
-    }
-    
-    .history-item {
-      background: var(--bg-card);
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      animation: fadeIn 0.4s ease-out;
-    }
-    
+    input:focus { outline: none; border-color: var(--gold); background: #1a1a1a; box-shadow: 0 0 12px rgba(212, 175, 55, 0.1); }
+
+    .history-item { background: var(--bg-card); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.4s ease-out; }
     .history-info { flex: 1; }
-    .history-date { 
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 4px;
+    .history-date { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .history-comment { font-size: 13px; font-weight: 600; color: var(--text); }
+    .history-amount { font-size: 16px; font-weight: 800; background: linear-gradient(135deg, #10b981, #6ee7b7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: right; }
+
+    @keyframes fadeOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100px); } }
+    .expense-card.removing { animation: fadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+    .settings-footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 30px; letter-spacing: 0.5px; }
+
+    /* ---------- Bottom tab dock ---------- */
+    .tabbar {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px);
+      position: relative;
+      z-index: 5;
+      background: rgba(8, 8, 8, 0.65);
     }
-    .history-comment { 
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
+    .tab {
+      background: none; border: none; color: var(--muted);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 6px 10px; border-radius: 14px; cursor: pointer; flex: 1;
+      transition: all 0.25s;
     }
-    .history-amount { 
-      font-size: 16px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #10b981, #6ee7b7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-align: right;
-    }
-    
-    .success-message {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(110, 231, 183, 0.2));
-      border: 2px solid var(--green);
-      color: #6ee7b7;
-      padding: 20px 24px;
-      border-radius: 16px;
-      margin: 0 0 24px 0;
-      font-size: 15px;
-      font-weight: 800;
-      animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
-      text-align: center;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes fadeOut {
-      from { opacity: 1; transform: translateX(0); }
-      to { opacity: 0; transform: translateX(100px); }
-    }
-    
-    .expense-card.removing {
-      animation: fadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
+    .tab-icon { font-size: 21px; filter: grayscale(1); opacity: 0.55; transition: all 0.25s; }
+    .tab-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+    .tab.active { color: var(--gold); }
+    .tab.active .tab-icon { filter: grayscale(0); opacity: 1; transform: translateY(-2px); }
 
     @media (max-width: 600px) {
-      .title { font-size: 28px; }
       .amount { font-size: 40px; }
-      .card { padding: 20px; }
+      .card { padding: 18px; }
       .button-group { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="title">💰 Expense Manager</div>
-    <div class="subtitle">Premium financial tracker</div>
-  </div>
 
-  <div class="card dashboard">
-    <div class="label">✨ Remaining this month</div>
-    <div class="amount" id="remaining">₹0</div>
-    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
-    <div class="progress-labels">
-      <span id="paidLabel">₹0 paid</span>
-      <span id="totalLabel">₹0 total</span>
-    </div>
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-num" id="pendingCount">0</div>
-        <div class="stat-label">Pending</div>
+<div class="bg-orb orb-gold"></div>
+<div class="bg-orb orb-green"></div>
+
+<div class="app">
+
+  <header class="topbar glass">
+    <div class="topbar-title" id="pageTitle">Dashboard</div>
+    <button class="topbar-refresh" id="topRefreshBtn" aria-label="Refresh">🔄</button>
+  </header>
+
+  <div class="toast-wrap"><div id="successMessage"></div></div>
+
+  <main class="pages" id="pagesContainer">
+    <div class="pull-indicator" id="pullIndicator">↓</div>
+
+    <section class="page active" id="page-dashboard">
+      <div class="card glass balance-card">
+        <div class="label">🏦 Bank Balance</div>
+        <div class="amount amount-green" id="bankBalance">₹0</div>
+        <div class="balance-sub">Live from your sheet (cell D12)</div>
       </div>
-      <div class="stat">
-        <div class="stat-num" id="overdueCount">0</div>
-        <div class="stat-label">Overdue</div>
+
+      <div class="card glass dashboard">
+        <div class="label">✨ Remaining this month</div>
+        <div class="amount" id="remaining">₹0</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+        <div class="progress-labels">
+          <span id="paidLabel">₹0 paid</span>
+          <span id="totalLabel">₹0 total</span>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-num" id="pendingCount">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num" id="overdueCount">0</div>
+            <div class="stat-label">Overdue</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <div id="successMessage"></div>
+    <section class="page" id="page-emi">
+      <div class="section-title">💳 EMI &amp; Bills</div>
+      <div id="expenses" class="loading">Loading expenses...</div>
+    </section>
 
-  <div class="section-title">📋 Expenses</div>
-  <div id="expenses" class="loading">Loading expenses...</div>
+    <section class="page" id="page-extra">
+      <div class="section-title">➕ Add Extra Expense</div>
+      <div class="card glass">
+        <input type="number" id="amount" placeholder="Amount (₹)" min="1">
+        <input type="text" id="comment" placeholder="Description (optional)">
+        <button class="button btn-success" id="addBtn">+ Add to Sheet</button>
+      </div>
 
-  <div class="section-title">➕ Add Extra Expense</div>
-  <div class="card">
-    <input type="number" id="amount" placeholder="Amount (₹)" min="1">
-    <input type="text" id="comment" placeholder="Description (optional)">
-    <button class="button btn-success" id="addBtn">+ Add to Sheet</button>
-  </div>
+      <div class="section-title">📜 Recent Expenses</div>
+      <div id="history"></div>
+    </section>
 
-  <div class="section-title">📜 Recent Expenses</div>
-  <div id="history"></div>
+    <section class="page" id="page-settings">
+      <div class="section-title">⚙️ Actions</div>
+      <div class="card glass">
+        <div class="button-group full">
+          <button class="button btn-primary" id="refreshBtn">🔄 Refresh Data</button>
+        </div>
+        <div class="button-group">
+          <button class="button btn-warning" id="nextBtn">📅 Next Month</button>
+          <button class="button btn-danger" id="resetBtn">Reset Paid</button>
+        </div>
+      </div>
+      <div class="settings-footer">Expense Manager · v4</div>
+    </section>
+  </main>
 
-  <div class="section-title">⚙️ Actions</div>
-  <div class="button-group full">
-    <button class="button btn-primary" id="refreshBtn">🔄 Refresh Data</button>
-  </div>
-  <div class="button-group">
-    <button class="button btn-warning" id="nextBtn">📅 Next Month</button>
-    <button class="button btn-danger" id="resetBtn">Reset Paid</button>
-  </div>
+  <nav class="tabbar glass">
+    <button class="tab active" data-page="dashboard">
+      <span class="tab-icon">🏠</span><span class="tab-label">Home</span>
+    </button>
+    <button class="tab" data-page="emi">
+      <span class="tab-icon">💳</span><span class="tab-label">EMI</span>
+    </button>
+    <button class="tab" data-page="extra">
+      <span class="tab-icon">➕</span><span class="tab-label">Extra</span>
+    </button>
+    <button class="tab" data-page="settings">
+      <span class="tab-icon">⚙️</span><span class="tab-label">More</span>
+    </button>
+  </nav>
+
 </div>
 
 <script>
 // ==================== IMPORTANT: UPDATE THESE TWO URLs ====================
-// 1. CSV_URL - for READING data from Google Sheet (already correct)
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1J6MZXem7uMEQRigxR-gKSAvkI60IX3X4EutydUQf_vM/export?format=csv";
-
-// 2. APPS_SCRIPT_URL - for SAVING data to Google Sheet
-// Replace this with your deployment URL from Google Apps Script
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd03eTjnCOOJlbvVTBp2tB2ilWdLPEJr2B7S5QsLUw3CgG4Df0-lr8sDlgIpeCv983CQ/exec";
 // =========================================================================
 
 let allExpenses = [];
-let paidItems = JSON.parse(localStorage.getItem('paidItems') || '[]');
+let refreshing = false;
+
+/* ---------------- CSV parsing (quote-aware, so commas in Comment/Extra text don't break columns) ---------------- */
+function splitCSVLine(line) {
+  const result = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === "," && !inQuotes) { result.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  result.push(cur);
+  return result;
+}
 
 function parseCSV(text) {
-  const lines = text.split('\n');
-  const headers = lines[0].split(',');
+  const lines = text.split("\n").filter(l => l.trim() !== "");
+  if (lines.length === 0) return [];
+  const headers = splitCSVLine(lines[0]).map(h => h.trim());
   const rows = [];
-  
   for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
+    const values = splitCSVLine(lines[i]);
     const obj = {};
-    const values = lines[i].split(',');
-    headers.forEach((header, idx) => {
-      obj[header.trim()] = values[idx] ? values[idx].trim() : '';
-    });
+    headers.forEach((h, idx) => { obj[h] = values[idx] !== undefined ? values[idx].trim() : ""; });
     rows.push(obj);
   }
   return rows;
 }
 
+/* ---------------- Data loading ---------------- */
 async function loadData() {
   try {
     const response = await fetch(CSV_URL);
     const csv = await response.text();
     const rows = parseCSV(csv);
-    
-    let remaining = 0, paid = 0, overdue = 0, pending = 0, expenses = [];
+
+    let remaining = 0, paid = 0, overdue = 0, pending = 0, expenses = [], bankBalance = 0;
     allExpenses = [];
-    
+
     rows.forEach(row => {
-      const expense = row['Expense'] || '';
-      const amount = Number(row['Amount']) || 0;
-      const dueDate = row['Due date'] || '';
-      const paidValue = row['Paid'] || '';
-      const daysLeft = Number(row['Days Left']) || 0;
-      const code = row['Code'] || '';
-      const icon = row['Icon'] || '💰';
-      
-      if (!expense || expense === 'TOTAL' || !code || expense === 'Extra') return; // Skip Extra row
-      
-      if (!paidValue || paidValue === '') {
+      const expense = row["Expense"] || "";
+      const amount = Number(row["Amount"]) || 0;
+      const dueDate = row["Due date"] || "";
+      const paidValue = row["Paid"] || "";
+      const daysLeft = Number(row["Days Left"]) || 0;
+      const code = row["Code"] || "";
+      const icon = row["Icon"] || "💰";
+
+      // TOTAL row: column D (Paid) holds the live bank balance formula result
+      if (expense === "TOTAL") {
+        bankBalance = Number(paidValue) || 0;
+        return;
+      }
+
+      if (!expense || !code || expense === "Extra") return; // skip Extra row from the bills list
+
+      if (!paidValue || paidValue === "") {
         pending++;
         remaining += amount;
         if (daysLeft < 0) overdue++;
-        expenses.push({ expense, amount, dueDate, daysLeft, code, icon, id: code });
-        allExpenses.push({ expense, amount, dueDate, daysLeft, code, icon, id: code });
+        expenses.push({ expense, amount, dueDate, daysLeft, code, icon });
+        allExpenses.push({ expense, amount, dueDate, daysLeft, code, icon });
       } else {
         paid += amount;
       }
     });
-    
+
     expenses.sort((a, b) => a.daysLeft - b.daysLeft);
-    displayData({ remaining, paid, overdue, pending, expenses });
+    displayData({ remaining, paid, overdue, pending, expenses, bankBalance });
   } catch (e) {
     console.error(e);
     document.getElementById("expenses").innerHTML = '<div class="empty">⚠️ Error: ' + e.message + '</div>';
@@ -567,6 +539,12 @@ function displayData(data) {
   const paid = Number(data.paid) || 0;
   const total = remaining + paid;
   const percent = total > 0 ? (paid / total) * 100 : 0;
+  const bank = Number(data.bankBalance) || 0;
+
+  const balEl = document.getElementById("bankBalance");
+  balEl.textContent = "₹" + bank.toLocaleString("en-IN");
+  balEl.classList.toggle("amount-red", bank < 0);
+  balEl.classList.toggle("amount-green", bank >= 0);
 
   document.getElementById("remaining").textContent = "₹" + remaining.toLocaleString("en-IN");
   document.getElementById("progress").style.width = Math.min(100, percent) + "%";
@@ -576,7 +554,7 @@ function displayData(data) {
   document.getElementById("overdueCount").textContent = data.overdue || 0;
 
   if (data.expenses.length === 0) {
-    document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><strong>All Clear!</strong><p style="margin-top: 8px; font-size: 13px; color: var(--muted);">No pending expenses this month.</p></div>';
+    document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><strong>All Clear!</strong><p style="margin-top:8px;font-size:13px;color:var(--muted);">No pending expenses this month.</p></div>';
   } else {
     const groups = { overdue: [], today: [], tomorrow: [], upcoming: [] };
     data.expenses.forEach(e => {
@@ -587,30 +565,28 @@ function displayData(data) {
     });
 
     let html = "";
-    if (groups.overdue.length > 0) html += '<div class="group-title">🔴 OVERDUE</div>' + groups.overdue.map(e => makeCard(e, "overdue")).join("");
-    if (groups.today.length > 0) html += '<div class="group-title">🟡 DUE TODAY</div>' + groups.today.map(e => makeCard(e, "today")).join("");
-    if (groups.tomorrow.length > 0) html += '<div class="group-title">✨ DUE TOMORROW</div>' + groups.tomorrow.map(e => makeCard(e, "tomorrow")).join("");
-    if (groups.upcoming.length > 0) html += '<div class="group-title">🔵 UPCOMING</div>' + groups.upcoming.map(e => makeCard(e, "upcoming")).join("");
-    
+    if (groups.overdue.length) html += '<div class="group-title">🔴 OVERDUE</div>' + groups.overdue.map(e => makeCard(e, "overdue")).join("");
+    if (groups.today.length) html += '<div class="group-title">🟡 DUE TODAY</div>' + groups.today.map(e => makeCard(e, "today")).join("");
+    if (groups.tomorrow.length) html += '<div class="group-title">✨ DUE TOMORROW</div>' + groups.tomorrow.map(e => makeCard(e, "tomorrow")).join("");
+    if (groups.upcoming.length) html += '<div class="group-title">🔵 UPCOMING</div>' + groups.upcoming.map(e => makeCard(e, "upcoming")).join("");
+
     document.getElementById("expenses").innerHTML = html;
-    
+
     document.querySelectorAll(".mark-paid").forEach(btn => {
-      btn.addEventListener("click", function(e) {
+      btn.addEventListener("click", function (e) {
         e.preventDefault();
-        const code = this.getAttribute("data-code");
-        markPaid(code);
+        markPaid(this.getAttribute("data-code"));
       });
     });
   }
-
-  loadHistory();
 }
 
 function makeCard(e, type) {
   const badgeClass = "badge-" + type;
   const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟡 DUE TODAY" : type === "tomorrow" ? "✨ DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
-  const date = new Date(e.dueDate).toLocaleDateString("en-IN");
-  
+  // Use the sheet's own date string directly - avoids "Invalid Date" from ambiguous DD/MM parsing
+  const date = e.dueDate || "—";
+
   return `<div class="expense-card" data-code="${e.code}">
     <div class="expense-header">
       <div style="flex: 1;">
@@ -633,32 +609,17 @@ function makeCard(e, type) {
   </div>`;
 }
 
+/* ---------------- Actions ---------------- */
 async function markPaid(code) {
-  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
-    showSuccess("⚠️ Please add Apps Script URL first!");
-    return;
-  }
-  
+  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") { showSuccess("⚠️ Please add Apps Script URL first!"); return; }
   try {
     showSuccess("⏳ Saving to sheet...");
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'markPaid', code: code })
-    });
+    const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "markPaid", code: code }) });
     const result = await response.json();
     if (result.success) {
       showSuccess("✅ " + result.message);
-      
-      // Animate card fade out and remove from DOM
       const card = document.querySelector(`[data-code="${code}"]`);
-      if (card) {
-        card.classList.add("removing");
-        setTimeout(() => {
-          card.remove();
-        }, 500);
-      }
-      
-      // Refresh data after 1.5 seconds
+      if (card) { card.classList.add("removing"); setTimeout(() => card.remove(), 500); }
       setTimeout(loadData, 1500);
     } else {
       showSuccess("❌ Error: " + result.message);
@@ -672,25 +633,16 @@ async function addExtra() {
   const amt = document.getElementById("amount").value;
   const cmt = document.getElementById("comment").value;
   if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
-  
-  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
-    showSuccess("⚠️ Please add Apps Script URL first!");
-    return;
-  }
-  
+  if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") { showSuccess("⚠️ Please add Apps Script URL first!"); return; }
+
   try {
     showSuccess("⏳ Adding to sheet...");
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'addExtra', amount: Number(amt), comment: cmt })
-    });
+    const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "addExtra", amount: Number(amt), comment: cmt }) });
     const result = await response.json();
-    
     if (result.success) {
       document.getElementById("amount").value = "";
       document.getElementById("comment").value = "";
       showSuccess("✅ " + result.message);
-      // Wait 1.5 seconds then refresh data
       setTimeout(loadData, 1500);
     } else {
       showSuccess("❌ Error: " + result.message);
@@ -702,12 +654,8 @@ async function addExtra() {
 
 async function loadHistory() {
   try {
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'getHistory' })
-    });
+    const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "getHistory" }) });
     const result = await response.json();
-    
     if (result.success && result.data && result.data.length > 0) {
       let html = "";
       result.data.forEach(item => {
@@ -732,106 +680,142 @@ async function loadHistory() {
 function showSuccess(msg) {
   const div = document.getElementById("successMessage");
   div.innerHTML = `<div class="success-message">${msg}</div>`;
-  // Keep message visible for 4 seconds
-  setTimeout(() => {
-    div.innerHTML = "";
-  }, 4000);
+  setTimeout(() => { div.innerHTML = ""; }, 4000);
 }
 
-document.getElementById("refreshBtn").onclick = loadData;
+/* ---------------- Tab navigation ---------------- */
+const tabs = Array.from(document.querySelectorAll(".tab"));
+const pages = Array.from(document.querySelectorAll(".page"));
+const pagesContainer = document.getElementById("pagesContainer");
+const pageTitles = { dashboard: "Dashboard", emi: "EMI & Bills", extra: "Extra & History", settings: "Settings" };
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.page;
+    tabs.forEach(t => t.classList.toggle("active", t === tab));
+    pages.forEach(p => p.classList.toggle("active", p.id === "page-" + target));
+    document.getElementById("pageTitle").textContent = pageTitles[target];
+    pagesContainer.scrollTop = 0;
+  });
+});
+
+/* ---------------- Refresh (button + pull-to-refresh, works from any tab) ---------------- */
+function triggerRefresh() {
+  if (refreshing) return;
+  refreshing = true;
+  document.getElementById("topRefreshBtn").classList.add("spinning");
+  Promise.all([loadData(), loadHistory()]).finally(() => {
+    setTimeout(() => {
+      refreshing = false;
+      document.getElementById("topRefreshBtn").classList.remove("spinning");
+      resetPull();
+    }, 350);
+  });
+}
+
+let pullStartY = 0, pulling = false, pullDistance = 0;
+const PULL_THRESHOLD = 70;
+const pullEl = document.getElementById("pullIndicator");
+
+pagesContainer.addEventListener("touchstart", e => {
+  if (pagesContainer.scrollTop <= 0 && !refreshing) { pullStartY = e.touches[0].clientY; pulling = true; }
+}, { passive: true });
+
+pagesContainer.addEventListener("touchmove", e => {
+  if (!pulling || refreshing) return;
+  const dy = e.touches[0].clientY - pullStartY;
+  if (dy > 0 && pagesContainer.scrollTop <= 0) {
+    pullDistance = Math.min(dy * 0.5, 90);
+    pullEl.style.transform = `translateX(-50%) translateY(${pullDistance + 40}px)`;
+    pullEl.style.opacity = Math.min(pullDistance / PULL_THRESHOLD, 1);
+    if (dy > 5) e.preventDefault();
+  }
+}, { passive: false });
+
+pagesContainer.addEventListener("touchend", () => {
+  if (!pulling) return;
+  pulling = false;
+  if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+    pullEl.classList.add("spinning");
+    triggerRefresh();
+  } else {
+    resetPull();
+  }
+});
+
+function resetPull() {
+  pullDistance = 0;
+  pullEl.style.transform = "translateX(-50%) translateY(0)";
+  pullEl.style.opacity = 0;
+  pullEl.classList.remove("spinning");
+}
+
+document.getElementById("topRefreshBtn").onclick = triggerRefresh;
+document.getElementById("refreshBtn").onclick = triggerRefresh;
 document.getElementById("addBtn").onclick = addExtra;
 document.getElementById("nextBtn").onclick = () => alert("📅 Update due dates in Google Sheet, then refresh this app.");
-document.getElementById("resetBtn").onclick = async function() {
+document.getElementById("resetBtn").onclick = async function () {
   if (confirm("⚠️ Reset all paid entries in the sheet?")) {
-    if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") {
-      showSuccess("⚠️ Please add Apps Script URL first!");
-      return;
-    }
+    if (APPS_SCRIPT_URL === "PASTE_YOUR_DEPLOYMENT_URL_HERE") { showSuccess("⚠️ Please add Apps Script URL first!"); return; }
     try {
       showSuccess("⏳ Resetting...");
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'resetPaid' })
-      });
+      const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "resetPaid" }) });
       const result = await response.json();
-      if (result.success) {
-        showSuccess("✅ " + result.message);
-        setTimeout(loadData, 1500);
-      } else {
-        showSuccess("❌ Error: " + result.message);
-      }
+      if (result.success) { showSuccess("✅ " + result.message); setTimeout(loadData, 1500); }
+      else { showSuccess("❌ Error: " + result.message); }
     } catch (e) {
       showSuccess("❌ Error: Check Apps Script URL");
     }
   }
 };
 
-// Check for upcoming dues and show browser notification
+/* ---------------- Background notifications (unchanged) ---------------- */
 function checkUpcomingDues() {
-  if ('Notification' in window && Notification.permission === 'granted') {
+  if ("Notification" in window && Notification.permission === "granted") {
     try {
-      const response = fetch(CSV_URL);
-      response.then(res => res.text()).then(csv => {
+      fetch(CSV_URL).then(res => res.text()).then(csv => {
         const rows = parseCSV(csv);
         const upcomingDues = [];
-        
         rows.forEach(row => {
-          const expense = row['Expense'] || '';
-          const daysLeft = Number(row['Days Left']) || 0;
-          const paidValue = row['Paid'] || '';
-          
-          // Check for unpaid expenses due today or tomorrow
-          if (!paidValue && (daysLeft === 0 || daysLeft === 1) && expense && expense !== 'TOTAL' && expense !== 'Extra') {
-            upcomingDues.push({
-              name: expense,
-              daysLeft: daysLeft,
-              amount: row['Amount']
-            });
+          const expense = row["Expense"] || "";
+          const daysLeft = Number(row["Days Left"]) || 0;
+          const paidValue = row["Paid"] || "";
+          if (!paidValue && (daysLeft === 0 || daysLeft === 1) && expense && expense !== "TOTAL" && expense !== "Extra") {
+            upcomingDues.push({ name: expense, daysLeft: daysLeft, amount: row["Amount"] });
           }
         });
-        
-        // Show notification if there are upcoming dues
         if (upcomingDues.length > 0) {
-          let title = '💳 Expense Reminder!';
-          let message = '';
-          
+          let title = "💳 Expense Reminder!";
+          let message = "";
           if (upcomingDues.length === 1) {
             const due = upcomingDues[0];
-            message = due.daysLeft === 0 
-              ? `${due.name} (₹${due.amount}) is due TODAY!`
-              : `${due.name} (₹${due.amount}) is due TOMORROW!`;
+            message = due.daysLeft === 0 ? `${due.name} (₹${due.amount}) is due TODAY!` : `${due.name} (₹${due.amount}) is due TOMORROW!`;
           } else {
             const today = upcomingDues.filter(d => d.daysLeft === 0).length;
             const tomorrow = upcomingDues.filter(d => d.daysLeft === 1).length;
             message = `${today} due today, ${tomorrow} due tomorrow`;
           }
-          
           new Notification(title, {
             body: message,
             icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%23000000" width="192" height="192"/><text x="96" y="120" font-size="100" font-weight="900" fill="%23d4af37" text-anchor="middle" font-family="Arial">💰</text></svg>',
-            tag: 'expense-reminder',
+            tag: "expense-reminder",
             requireInteraction: false
           });
         }
       });
-    } catch (e) {
-      console.log('Notification error:', e);
-    }
+    } catch (e) { console.log("Notification error:", e); }
   }
 }
 
-// Request notification permission
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
-}
-
+if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
 
 setInterval(loadData, 30000);
-setInterval(checkUpcomingDues, 21600000); // Check every 6 hours for reminders
+setInterval(checkUpcomingDues, 21600000);
 
-window.addEventListener("load", function() {
+window.addEventListener("load", function () {
   loadData();
-  checkUpcomingDues(); // Check for upcoming dues on load
+  loadHistory();
+  checkUpcomingDues();
 });
 </script>
 </body>
