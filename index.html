@@ -28,7 +28,11 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overscroll-behavior-y: contain; }
+    html {
+      height: 100%;
+      background: #000000;
+      overscroll-behavior: none;
+    }
 
     body {
       background: linear-gradient(135deg, var(--bg-dark) 0%, #0a0a0a 100%);
@@ -36,7 +40,9 @@
       font-family: 'Segoe UI', -apple-system, sans-serif;
       height: 100vh;
       height: 100dvh;
+      min-height: -webkit-fill-available;
       overflow: hidden;
+      overscroll-behavior: none;
       position: relative;
     }
 
@@ -55,6 +61,7 @@
       max-width: 520px;
       margin: 0 auto;
       height: 100%;
+      background: #000000;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -214,8 +221,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .balance-card .amount { font-size: 42px; margin-bottom: 4px; }
-    .balance-sub { font-size: 12px; color: var(--muted); }
+    .balance-card .amount { font-size: 42px; margin-bottom: 0; }
 
     .progress-bar {
       height: 12px;
@@ -247,6 +253,8 @@
       padding-top: 20px;
       border-top: 1px solid var(--border);
     }
+    .stats.stats-3 { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stats.stats-3 .stat-num { font-size: 26px; }
     .stat { text-align: center; padding: 12px; }
     .stat-num { font-size: 32px; font-weight: 900; color: var(--gold); margin-bottom: 4px; }
     .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
@@ -377,7 +385,6 @@
       <div class="card glass balance-card">
         <div class="label">🏦 Bank Balance</div>
         <div class="amount amount-green" id="bankBalance">₹0</div>
-        <div class="balance-sub">Live from your sheet (cell D12)</div>
       </div>
 
       <div class="card glass dashboard">
@@ -388,7 +395,7 @@
           <span id="paidLabel">₹0 paid</span>
           <span id="totalLabel">₹0 total</span>
         </div>
-        <div class="stats">
+        <div class="stats stats-3">
           <div class="stat">
             <div class="stat-num" id="pendingCount">0</div>
             <div class="stat-label">Pending</div>
@@ -396,6 +403,10 @@
           <div class="stat">
             <div class="stat-num" id="overdueCount">0</div>
             <div class="stat-label">Overdue</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num" id="tomorrowCount">0</div>
+            <div class="stat-label">Tomorrow</div>
           </div>
         </div>
       </div>
@@ -495,7 +506,7 @@ async function loadData() {
     const csv = await response.text();
     const rows = parseCSV(csv);
 
-    let remaining = 0, paid = 0, overdue = 0, pending = 0, expenses = [], bankBalance = 0;
+    let remaining = 0, paid = 0, overdue = 0, pending = 0, dueTomorrow = 0, expenses = [], bankBalance = 0;
     allExpenses = [];
 
     rows.forEach(row => {
@@ -519,6 +530,7 @@ async function loadData() {
         pending++;
         remaining += amount;
         if (daysLeft < 0) overdue++;
+        if (daysLeft === 1) dueTomorrow++;
         expenses.push({ expense, amount, dueDate, daysLeft, code, icon });
         allExpenses.push({ expense, amount, dueDate, daysLeft, code, icon });
       } else {
@@ -527,7 +539,7 @@ async function loadData() {
     });
 
     expenses.sort((a, b) => a.daysLeft - b.daysLeft);
-    displayData({ remaining, paid, overdue, pending, expenses, bankBalance });
+    displayData({ remaining, paid, overdue, pending, dueTomorrow, expenses, bankBalance });
   } catch (e) {
     console.error(e);
     document.getElementById("expenses").innerHTML = '<div class="empty">⚠️ Error: ' + e.message + '</div>';
@@ -552,6 +564,7 @@ function displayData(data) {
   document.getElementById("totalLabel").textContent = "₹" + total.toLocaleString("en-IN") + " total";
   document.getElementById("pendingCount").textContent = data.pending || 0;
   document.getElementById("overdueCount").textContent = data.overdue || 0;
+  document.getElementById("tomorrowCount").textContent = data.dueTomorrow || 0;
 
   if (data.expenses.length === 0) {
     document.getElementById("expenses").innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><strong>All Clear!</strong><p style="margin-top:8px;font-size:13px;color:var(--muted);">No pending expenses this month.</p></div>';
