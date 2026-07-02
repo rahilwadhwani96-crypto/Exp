@@ -25,6 +25,7 @@
       --text: #ffffff;
       --muted: #9ca3af;
       --border: #1f2937;
+      --tab-height: 76px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,10 +39,8 @@
       background: linear-gradient(135deg, var(--bg-dark) 0%, #0a0a0a 100%);
       color: var(--text);
       font-family: 'Segoe UI', -apple-system, sans-serif;
-      height: 100vh;
-      height: 100dvh;
-      min-height: -webkit-fill-available;
-      overflow: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
       overscroll-behavior: none;
       position: relative;
     }
@@ -60,12 +59,12 @@
     .app {
       max-width: 520px;
       margin: 0 auto;
-      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
       background: #000000;
-      display: flex;
-      flex-direction: column;
       position: relative;
       z-index: 1;
+      padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom));
     }
 
     /* ---------- Glass surfaces ---------- */
@@ -78,13 +77,13 @@
 
     /* ---------- Top bar ---------- */
     .topbar {
-      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: calc(env(safe-area-inset-top) + 14px) 20px 14px;
-      position: relative;
-      z-index: 5;
+      position: sticky;
+      top: 0;
+      z-index: 10;
       background: rgba(8, 8, 8, 0.65);
       border-top: none;
       border-left: none;
@@ -144,9 +143,6 @@
 
     /* ---------- Pages / scroll area ---------- */
     .pages {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
       padding: 16px 16px 28px;
       position: relative;
       z-index: 1;
@@ -337,14 +333,24 @@
 
     /* ---------- Bottom tab dock ---------- */
     .tabbar {
-      flex-shrink: 0;
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px);
-      position: relative;
-      z-index: 5;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
       background: rgba(8, 8, 8, 0.65);
+    }
+    @media (min-width: 520px) {
+      .tabbar {
+        max-width: 520px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+      }
     }
     .tab {
       background: none; border: none; color: var(--muted);
@@ -597,7 +603,6 @@ function displayData(data) {
 function makeCard(e, type) {
   const badgeClass = "badge-" + type;
   const badgeText = type === "overdue" ? "🔴 OVERDUE" : type === "today" ? "🟡 DUE TODAY" : type === "tomorrow" ? "✨ DUE TOMORROW" : "🔵 " + e.daysLeft + " DAYS";
-  // Use the sheet's own date string directly - avoids "Invalid Date" from ambiguous DD/MM parsing
   const date = e.dueDate || "—";
 
   return `<div class="expense-card" data-code="${e.code}">
@@ -711,7 +716,7 @@ function switchToTab(target) {
   tabs.forEach(t => t.classList.toggle("active", t.dataset.page === target));
   pages.forEach(p => p.classList.toggle("active", p.id === "page-" + target));
   document.getElementById("pageTitle").textContent = pageTitles[target];
-  pagesContainer.scrollTop = 0;
+  window.scrollTo(0, 0);
 }
 
 function goToRelativeTab(direction) {
@@ -746,7 +751,7 @@ const PULL_THRESHOLD = 70;
 const SWIPE_THRESHOLD = 60;
 const pullEl = document.getElementById("pullIndicator");
 
-pagesContainer.addEventListener("touchstart", e => {
+document.addEventListener("touchstart", e => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
   touchCurX = touchStartX;
@@ -755,21 +760,20 @@ pagesContainer.addEventListener("touchstart", e => {
   pullDistance = 0;
 }, { passive: true });
 
-pagesContainer.addEventListener("touchmove", e => {
+document.addEventListener("touchmove", e => {
   touchCurX = e.touches[0].clientX;
   touchCurY = e.touches[0].clientY;
   const dx = touchCurX - touchStartX;
   const dy = touchCurY - touchStartY;
 
-  // Lock the gesture to one axis once the movement is clearly one direction
   if (gestureDirection === null && (Math.abs(dx) > 12 || Math.abs(dy) > 12)) {
     gestureDirection = Math.abs(dx) > Math.abs(dy) * 1.3 ? "horizontal" : "vertical";
   }
 
   if (gestureDirection === "horizontal") {
-    e.preventDefault(); // don't let the page scroll while swiping between tabs
+    e.preventDefault();
   } else if (gestureDirection === "vertical") {
-    if (dy > 0 && pagesContainer.scrollTop <= 0 && !refreshing) {
+    if (dy > 0 && window.scrollY <= 0 && !refreshing) {
       pullDistance = Math.min(dy * 0.5, 90);
       pullEl.style.transform = `translateX(-50%) translateY(${pullDistance + 40}px)`;
       pullEl.style.opacity = Math.min(pullDistance / PULL_THRESHOLD, 1);
@@ -778,11 +782,11 @@ pagesContainer.addEventListener("touchmove", e => {
   }
 }, { passive: false });
 
-pagesContainer.addEventListener("touchend", () => {
+document.addEventListener("touchend", () => {
   if (gestureDirection === "horizontal") {
     const dx = touchCurX - touchStartX;
     if (Math.abs(dx) > SWIPE_THRESHOLD) {
-      goToRelativeTab(dx < 0 ? 1 : -1); // swipe left -> next tab, swipe right -> previous tab
+      goToRelativeTab(dx < 0 ? 1 : -1);
     }
   } else if (gestureDirection === "vertical") {
     if (pullDistance >= PULL_THRESHOLD && !refreshing) {
